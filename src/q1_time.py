@@ -1,6 +1,24 @@
 from typing import List, Tuple
 from datetime import datetime
 import pandas as pd
+import jsonlines
+
+def read_json_lines(file_path: str, cols: list):
+    """Lee un archivo en el cual hay un objeto JSON por línea y devuelve los datos solicitados en un dataframe de pandas.
+
+    Args:
+        file_path (str): path del archivo a leer..
+        cols (list): lista de "keys" de cada JSON que queremos devolver
+
+    Returns:
+        pd.DataFrame: dataframe de pandas con los datos solicitados.
+    """
+    data = []
+    with jsonlines.open(file_path) as reader:
+        for item in reader:
+            item = {key: item[key] for key in cols if key in item}
+            data.append(item)
+    return pd.DataFrame(data)
 
 def extract_user_id(dicc: dict):
     """ Función específicamente creada para usar junto al método apply, aplicado a una columna de un
@@ -41,27 +59,22 @@ def q1_time(file_path: str) -> List[Tuple[datetime.date, str]]:
     """
 
     # Lectura de los datos. La estructura de los datos son un objeto JSON por cada fila.
-    df = pd.read_json(path_or_buf=file_path, lines=True)
+    df = read_json_lines(file_path, cols=['date', 'user', 'id'])
 
-    # El dataframe posee una columna llamada "user". 
-    # En esa columna cada registro es un diccionario con información del usuario.
-    # Extraemos de el user_id y el username de cada usuario ya que los necesitaremos.
+    # Extraemos de el user_id y el username de cada usuario, de la columna "user" ya que los necesitaremos.
     df['user_id'] = df['user'].apply(extract_user_id)
     df['username'] = df['user'].apply(extract_username)
 
-
-    # Utilizamos el método columnar de pandas para convertir las fechas de datetime a date.
-    # Esto es necesario para luego agrupar por date.
+    # Convertimos la columna date de tipo datetime a date.
+    df['date'] = pd.to_datetime(df['date'])
     df['date'] = df['date'].dt.date
 
     # Obtenemos las top 10 fechas con más tweets y filtramos nuestro df por esas fechas
-    top_10_dates = list(df.groupby('date').count().sort_values('id', ascending=False).index[0:10])
+    top_10_dates = df['date'].value_counts().nlargest(10).index
     df = df.loc[df.date.isin(top_10_dates)]
-
 
     #Creamos una columna llamada "rnk" (rank) para saber cuántos tweets realizó cada usuario en cada día.
     df['rnk'] = df.groupby(['date', 'user_id']).cumcount()
-
 
     #Creamos un nuevo dataframe "df2" en el cual realizamos los siguientes pasos:
     # 1.    Agrupamos por date y user_id y nos quedamos con el máximo valor de rnk. 
@@ -85,8 +98,7 @@ def q1_time(file_path: str) -> List[Tuple[datetime.date, str]]:
                         sort_values('rnk', ascending=False).\
                         merge(df[['user_id', 'username']].drop_duplicates(keep='first'), how='left', on='user_id')
 
-    # El método to_records() nos permite obtener un array de tuplas de las columnas del dataframe.
     q1_records = df2.to_records(index=False)
     
-    # Retornamos solo las columnas solicitadas en el ejercicio.
     return [(row.date, row.username) for row in q1_records]
+
