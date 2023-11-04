@@ -3,7 +3,15 @@ import pandas as pd
 from collections import Counter
 
 def extract_mentioned_users(user_list: list):
-    if user_list != None:
+    """Extrae los usernames de la lista de diccionarios que trae la columna mentionedUsers.
+
+    Args:
+        user_list (list): lista de diccionarios de los usuarios mencionados.
+
+    Returns:
+        list: lista con los nombres (str) de los usuarios mencionados.
+    """
+    if type(user_list)==list:
         return [e.get('username') for e in user_list]
 
 
@@ -23,11 +31,16 @@ def get_most_common_elements(elements: list, n:int =10):
 
 
 def q3_memory(file_path: str) -> List[Tuple[str, int]]:
+
+    #Realizamos la lectura de datos por particiones, utilizando el parámetro chunksize
+    # que ofrece el método pd.read_json() de pandas
+    # Además, guardamos los resultados de cada chunk en la lista "mentionedUsers_username"
     mentionedUsers_username = []
-    for chunk in pd.read_json(path_or_buf=file_path, lines=True, chunksize=1000):
+    for chunk in pd.read_json(path_or_buf=file_path, lines=True, chunksize=50):
         users = chunk['mentionedUsers'].apply(extract_mentioned_users)
         mentionedUsers_username.extend(users)
 
+    #Concatenamos todos las listas en una sola para luego aplicar la función get_most_common_elements
     mentionedUsers_list = []
     for each_list in mentionedUsers_username:
         if each_list is not None:
