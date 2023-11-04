@@ -3,6 +3,8 @@ Challenge técnico de Data Engineering
 
 En este repositorio se encuentran las respuestas a las 3 consignas, cada una con dos enfoques: uno que optimice el uso de memoria y otro que optimice el tiempo de ejecución.
 
+Se crearon tres notebooks para explicar detalladamente cada consigna y compartir los resultados de los tiempos de ejecución y uso de memoria para cada función.
+
 ## Consignas​
 1. Las top 10 fechas donde hay más tweets. Mencionar el usuario (username) que más publicaciones tiene por cada uno de esos días. Debe incluir las siguientes funciones:
 ```python

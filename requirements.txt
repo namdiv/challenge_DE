@@ -1,1 +1,4 @@
 memory-profiler==0.61.0
+pandas==2.1.2
+emoji==2.8.0
+jsonlines==4.0.0
