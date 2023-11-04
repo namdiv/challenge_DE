@@ -36,7 +36,7 @@ def q2_memory(file_path: str) -> List[Tuple[str, int]]:
     # Por lo tanto, es necesario hacer un bucle "for" y sacrificar procesamiento.
      
     emoji_lists = []
-    for chunk in pd.read_json(path_or_buf=file_path, lines=True, chunksize=1000):
+    for chunk in pd.read_json(path_or_buf=file_path, lines=True, chunksize=50):
         emojis = chunk['content'].apply(extract_emojis)
         emoji_lists.extend(emojis) #extend nos permite concatenar listas y almacenar los resultados de cada partición
 
