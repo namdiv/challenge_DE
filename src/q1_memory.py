@@ -1,6 +1,7 @@
 from typing import List, Tuple
 from datetime import datetime
 import pandas as pd
+from memory_profiler import profile
 
 def extract_user_id(dicc: dict):
     """ Función específicamente creada para usar junto al método apply, aplicado a una columna de un
@@ -28,7 +29,7 @@ def extract_username(dicc: dict):
     """
     return dicc.get('username')
 
-
+@profile
 def q1_memory(file_path: str) -> List[Tuple[datetime.date, str]]:
     """Devuelve las top 10 fechas donde hay más tweet junto con el usuario que más tweets realizó en cada día.
 
@@ -40,12 +41,15 @@ def q1_memory(file_path: str) -> List[Tuple[datetime.date, str]]:
     """
     
     # Lectura de los datos. La estructura de los datos son un objeto JSON por cada fila.
-    data = pd.read_json(path_or_buf='../farmers-protest-tweets-2021-2-4.json', lines=True)
+    df = pd.read_json(path_or_buf=file_path, lines=True)
 
     # Este paso no lo hacemos en q1_time pero acá si para liberar memoria
     # Nos quedamos solo con las columnas necesarias
-    df = data[['date', 'id', 'user']] 
-    del data
+    cols = ['date', 'id', 'user']
+
+    for col in df.columns:
+        if col not in cols:
+            df = df.drop(columns=col)
 
     # El dataframe posee una columna llamada "user". 
     # En esa columna cada registro es un diccionario con información del usuario.
